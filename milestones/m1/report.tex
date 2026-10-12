@@ -12,9 +12,14 @@
 \usepackage{booktabs}
 \usepackage[round]{natbib}
 \usepackage{hyperref}
+\usepackage{float}
 \hypersetup{colorlinks=true, linkcolor=blue!50!black, citecolor=blue!50!black, urlcolor=blue!50!black}
 \usepackage{enumitem}
 \usepackage{xcolor}
+
+% TikZ libraries required for the pipeline diagram
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
 
 \newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
 
@@ -45,21 +50,7 @@ How does it connect to material from the course (name the week/topic)? 1 paragra
 
 In addition to foundational works, recent literature from 2023 and 2024—such as the efficient compressed-domain processing techniques by Wu et al. (2023) and the JPEG stream acceleration methods by Zhang et al. (2024)—validate our strategy of trading off high-frequency DCT bands to achieve optimal end-to-end latency without sacrificing classification accuracy. These studies directly inform our ablation study protocol and hardware standardization framework.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{|l|l|p{6cm}|}
-\hline
-\textbf{Reference} & \textbf{Year} & \textbf{Relevance to Our Project} \\ \hline
-Gueguen et al. \cite{gueguen2018faster} & 2018 & Provides the core architecture for direct JPEG-DCT feature classification without decompression. \\ \hline
-Canziani et al. \cite{canziani2016analysis} & 2016 & Guides our hardware profiling and end-to-end latency benchmarks on resource-constrained setups. \\ \hline
-Wu et al. \cite{wu2023efficient} & 2023 & Offers modern insights into efficient compressed-domain image processing and optimization. \\ \hline
-Zhang et al. \cite{zhang2024accelerating} & 2024 & Inspires our frequency band ablation studies and stream acceleration techniques. \\ \hline
-\end{tabular}
-\caption{Summary of key literature informing our compressed-domain methodology.}
-\label{tab:literature_summary}
-\end{table}
-
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Key references.}
 \label{tab:refs}
@@ -67,8 +58,10 @@ Zhang et al. \cite{zhang2024accelerating} & 2024 & Inspires our frequency band a
 \toprule
 \textbf{Reference} & \textbf{Year} & \textbf{Relevance to this project} \\
 \midrule
-\citep{example2024} & 2024 & \todo{one sentence} \\
-\citep{example2018}  & 2018 & \todo{one sentence} \\
+Gueguen et al. \citep{gueguen2018faster} & 2018 & Provides the core architecture for direct JPEG-DCT feature classification without decompression. \\ \hline
+Canziani et al. \citep{canziani2016analysis} & 2016 & Guides our hardware profiling and end-to-end latency benchmarks on resource-constrained setups. \\ \hline
+Wu et al. \citep{wu2023efficient} & 2023 & Offers modern insights into efficient compressed-domain image processing and optimization. \\ \hline
+Zhang et al. \citep{zhang2024accelerating} & 2024 & Inspires our frequency band ablation studies and stream acceleration techniques. \\ \hline
 \bottomrule
 \end{tabular}
 \end{table}
@@ -77,7 +70,7 @@ Zhang et al. \cite{zhang2024accelerating} & 2024 & Inspires our frequency band a
 \label{sec:data}
 The CIFAR-10 dataset will be used. It contains 50,000 training images and 10,000 test images across ten object categories. Images will be re-encoded as JPEG quality 90 before DCT extraction. The baseline model is a standard ResNet-50 operating on decoded RGB images. The proposed model will operate directly on the JPEG DCT coefficients extracted from the same images.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Dataset summary.}
 \label{tab:data}
@@ -89,6 +82,41 @@ CIFAR-10 & 50,000 train, 10,000 test & https://www.cs.toronto.edu/~kriz/cifar.ht
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[H]
+  \centering
+  \tikzset{
+      block/.style = {rectangle, draw, fill=blue!10, text width=6.8cm, text centered, rounded corners, minimum height=0.9cm, font=\small},
+      process/.style = {rectangle, draw, fill=orange!15, text width=6.8cm, text centered, minimum height=0.9cm, font=\small},
+      data/.style = {trapezium, trapezium stretches body, fill=green!15, draw, text width=5.8cm, text centered, minimum height=0.8cm, font=\small},
+      arrow/.style = {thick, -{Stealth[scale=1.2]}}
+  }
+  
+  \begin{tikzpicture}[node distance=1.8cm]
+      % Stage 1: CIFAR-10 to JPEG
+      \node (cifar) [data] {CIFAR-10 Dataset\\(50K Train / 10K Test Arrays)};
+      
+      \node (jpeg_save) [process, below=of cifar] {Convert NumPy Arrays to PIL Images\\\& Save as JPEG (Quality = 100)\\Structured by Class Labels};
+      
+      \node (jpeg_dir) [data, below=of jpeg_save] {JPEG Dataset Disk Storage\\(\texttt{jpeg\_dataset/train/} \& \texttt{test/})};
+      
+      % Stage 2: JPEG to DCT .npy
+      \node (jio_read) [process, below=of jpeg_dir] {Parse JPEG Structs via \texttt{jpegio}\\Extract Quantized DCT Arrays (\texttt{coef\_arrays})};
+      
+      \node (dequant) [process, below=of jio_read] {Dequantize Coefficients per Channel:\\\texttt{coef\_dequant = coef\_q * qtbl\_full}\\(Y, Cb, Cr matrices)};
+      
+      \node (npy_save) [data, below=of dequant] {DCT Compressed-Domain Dataset\\(\texttt{*.npy} Dictionaries: Y, Cb, Cr)};
+
+      % Connectors
+      \draw [arrow] (cifar) -- (jpeg_save);
+      \draw [arrow] (jpeg_save) -- (jpeg_dir);
+      \draw [arrow] (jpeg_dir) -- (jio_read);
+      \draw [arrow] (jio_read) -- (dequant);
+      \draw [arrow] (dequant) -- (npy_save);
+  \end{tikzpicture}
+  \caption{Data preprocessing pipeline illustrating the translation of raw CIFAR-10 pixel batches into dequantized DCT coefficients saved as compressed dictionary blocks.}
+  \label{fig:pipeline_flowchart}
+\end{figure}
 
 \section{Proposed Method}
 \label{sec:method}
@@ -125,7 +153,7 @@ Success is defined as achieving at least 88\% top-1 classification accuracy on C
 
 \section{Work Breakdown}
 \label{sec:workbreakdown}
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Milestone task allocation (see also the project catalog entry for this
 project).}
@@ -134,9 +162,9 @@ project).}
 \toprule
 \textbf{Milestone} & \textbf{Student A} & \textbf{Student B} & \textbf{Student C} \\
 \midrule
-M1 (Wk 3) & JPEG-DCT extraction pipeline; dataset subset chosen & \ Proposal & \ extracted-DCT demo \\
-M2 (Wk 6) & RGB-ResNet baseline trained, accuracy recorded & \ Progress report & \ comparison \\
-M3 (Wk 9) & Final RGB baseline (accuracy + decode+infer time) & \ Final report & \ repo & \ demo \\
+M1 (Wk 3) & JPEG-DCT extraction pipeline; dataset subset chosen & Design DCT-domain classifier architecture & Define accuracy/speed comparison protocol \\
+M2 (Wk 6) & RGB-ResNet baseline trained, accuracy recorded & DCT-domain classifier, first trained checkpoint & Preliminary accuracy + speed comparison \\
+M3 (Wk 9) & Final RGB baseline (accuracy + decode+infer time) & Final DCT-domain classifier & Full accuracy-vs-speed table, ablation on which DCT bands matter \\
 \bottomrule
 \end{tabular}
 \end{table}
