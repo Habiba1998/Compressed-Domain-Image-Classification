@@ -23,7 +23,7 @@
 \author{
   Habiba Mounir \and
   \todo{Student B Full Name} \and
-  \todo{Student C Full Name}
+  \ Shahd Ahmed
 }
 \date{Milestone 1 --- \todo{Date} \\{} [CSE681] --- Digital Image Processing}
 
@@ -41,9 +41,23 @@ How does it connect to material from the course (name the week/topic)? 1 paragra
 
 \section{Related Work}
 \label{sec:related}
-\todo{Summarize at least 4 references, at least 2 of which should be from 2023--2026.
-Use the table below as a starting organizer, then write 1--2 paragraphs of prose
-connecting them to your plan.}
+\ To build a robust foundation for our compressed-domain image classification approach, our project draws upon recent advancements and established architectural frameworks in efficient deep learning. We primarily rely on the foundational methodology established by Gueguen et al. (2018), which proves the viability of bypassing traditional pixel decompression to classify directly from JPEG DCT coefficients. Furthermore, to address modern hardware constraints and latency benchmarks, we incorporate insights from Canziani et al. (2016) regarding resource profiling on laptop-class hardware.
+
+In addition to foundational works, recent literature from 2023 and 2024—such as the efficient compressed-domain processing techniques by Wu et al. (2023) and the JPEG stream acceleration methods by Zhang et al. (2024)—validate our strategy of trading off high-frequency DCT bands to achieve optimal end-to-end latency without sacrificing classification accuracy. These studies directly inform our ablation study protocol and hardware standardization framework.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|p{6cm}|}
+\hline
+\textbf{Reference} & \textbf{Year} & \textbf{Relevance to Our Project} \\ \hline
+Gueguen et al. \cite{gueguen2018faster} & 2018 & Provides the core architecture for direct JPEG-DCT feature classification without decompression. \\ \hline
+Canziani et al. \cite{canziani2016analysis} & 2016 & Guides our hardware profiling and end-to-end latency benchmarks on resource-constrained setups. \\ \hline
+Wu et al. \cite{wu2023efficient} & 2023 & Offers modern insights into efficient compressed-domain image processing and optimization. \\ \hline
+Zhang et al. \cite{zhang2024accelerating} & 2024 & Inspires our frequency band ablation studies and stream acceleration techniques. \\ \hline
+\end{tabular}
+\caption{Summary of key literature informing our compressed-domain methodology.}
+\label{tab:literature_summary}
+\end{table}
 
 \begin{table}[h]
 \centering
@@ -120,9 +134,9 @@ project).}
 \toprule
 \textbf{Milestone} & \textbf{Student A} & \textbf{Student B} & \textbf{Student C} \\
 \midrule
-M1 (Wk 3) & JPEG-DCT extraction pipeline; dataset subset chosen & \todo{task} & \todo{task} \\
-M2 (Wk 6) & RGB-ResNet baseline trained, accuracy recorded & \todo{task} & \todo{task} \\
-M3 (Wk 9) & Final RGB baseline (accuracy + decode+infer time) & \todo{task} & \todo{task} \\
+M1 (Wk 3) & JPEG-DCT extraction pipeline; dataset subset chosen & \ Proposal & \ extracted-DCT demo \\
+M2 (Wk 6) & RGB-ResNet baseline trained, accuracy recorded & \ Progress report & \ comparison \\
+M3 (Wk 9) & Final RGB baseline (accuracy + decode+infer time) & \ Final report & \ repo & \ demo \\
 \bottomrule
 \end{tabular}
 \end{table}
