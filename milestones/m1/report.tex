@@ -27,7 +27,7 @@
 \large Compressed-Domain Image Classification}
 \author{
   Habiba Mounir \and
-  \todo{Student B Full Name} \and
+  \ Hagar Medhat \and
   \ Shahd Ahmed
 }
 \date{Milestone 1 --- \todo{Date} \\{} [CSE681] --- Digital Image Processing}
@@ -41,8 +41,25 @@ Image classification systems typically decode JPEG images into RGB pixels before
 
 \section{Problem Statement \& Motivation}
 \label{sec:motivation}
-\todo{What image-processing problem are you solving? Why is it interesting or useful?
-How does it connect to material from the course (name the week/topic)? 1 paragraph.}
+
+Conventional image classification systems typically require compressed
+JPEG images to be decoded into RGB pixel representations before they can
+be processed by deep neural networks. Although this approach is widely
+used, decoding introduces additional computational overhead, memory
+requirements, and preprocessing latency. These costs can become important
+in resource-constrained environments and applications that require
+efficient image processing. This project investigates whether image
+classification can be performed directly on JPEG-domain Discrete Cosine
+Transform (DCT) coefficients, avoiding full image reconstruction before
+inference. The proposed approach will be evaluated on the CIFAR-10 dataset
+and compared with a conventional ResNet-50 model operating on decoded RGB
+images. This problem is closely related to Digital Image Processing
+concepts, particularly JPEG compression, frequency-domain representation,
+quantization, and the DCT, which transforms image blocks from the spatial
+domain into frequency components. By exploiting these representations,
+the project aims to determine whether compressed-domain classification can
+reduce computational cost while maintaining competitive classification
+accuracy.
 
 \section{Related Work}
 \label{sec:related}
@@ -120,13 +137,210 @@ CIFAR-10 & 50,000 train, 10,000 test & https://www.cs.toronto.edu/~kriz/cifar.ht
 
 \section{Proposed Method}
 \label{sec:method}
-\todo{Sketch your planned approach: architecture diagram or pseudocode, what is novel
-or extended relative to the baseline, and why you expect it to work.}
+
+This project proposes a compressed-domain image classification approach that
+operates directly on JPEG Discrete Cosine Transform (DCT) coefficients instead
+of reconstructing images as RGB pixels before classification. The main objective
+is to investigate whether processing frequency-domain representations can reduce
+computational overhead while maintaining competitive classification accuracy.
+
+\subsection{Overview of the Proposed Pipeline}
+
+The proposed pipeline consists of four main stages: JPEG encoding, DCT
+coefficient extraction, feature preprocessing, and neural network
+classification. First, CIFAR-10 images are encoded as JPEG files using a
+consistent quality setting. Next, the \texttt{jpegio} library is used to
+extract the quantized DCT coefficients and quantization tables for the
+luminance and chrominance components (Y, Cb, and Cr). The coefficients are
+then dequantized and normalized to obtain numerical representations suitable
+for neural network training. The resulting coefficient arrays are stored in
+NumPy format to facilitate efficient data loading.
+
+Unlike conventional image classification pipelines, the proposed approach
+does not apply an inverse DCT transformation to reconstruct RGB images before
+classification. Instead, it processes the extracted frequency-domain
+representations directly.
+
+\subsection{DCT-Domain Classifier Architecture}
+
+We plan to develop a convolutional neural network (CNN) that accepts the
+preprocessed DCT coefficient representations as input. The network will
+contain convolutional layers for feature extraction, nonlinear activation
+functions, and pooling or downsampling operations to learn discriminative
+features from the frequency-domain data. The extracted features will then
+pass through a classification head that produces scores for the ten CIFAR-10
+categories.
+
+The Y, Cb, and Cr components will be handled consistently during preprocessing.
+Because JPEG chroma subsampling can produce different spatial dimensions for
+luminance and chrominance coefficients, their dimensions and representations
+will be checked before combining them or passing them to the network.
+Normalization and any required resizing or alignment operations will be
+defined using the training data and applied consistently to the validation
+and test sets.
+
+The architecture will be kept sufficiently lightweight to investigate the
+potential computational advantages of compressed-domain classification.
+Model configuration and training hyperparameters will be selected through
+preliminary experiments.
+
+\subsection{RGB Baseline and Experimental Comparison}
+
+A ResNet-50 model trained on decoded RGB images will serve as the baseline.
+Both approaches will use the same CIFAR-10 training and test splits and the
+same JPEG-encoded image content wherever applicable. Training procedures,
+evaluation conditions, and hardware settings will be documented to make the
+comparison as fair and reproducible as possible.
+
+The evaluation will focus on the following metrics:
+
+\begin{enumerate}
+    \item \textbf{Classification Accuracy:} Top-1 accuracy on the CIFAR-10
+    test set to measure the predictive performance of each model.
+
+    \item \textbf{Inference Latency:} The average time required to classify
+    an image or batch of images under controlled hardware and batch-size
+    settings.
+
+    \item \textbf{Preprocessing Cost:} The time required to prepare the input
+    representation, including JPEG decoding for the RGB baseline and DCT
+    coefficient extraction for the proposed approach.
+
+    \item \textbf{Throughput:} The number of images processed per second
+    under the same evaluation conditions.
+
+    \item \textbf{End-to-End Runtime:} The total time required for input
+    preparation and model inference, reported separately from model-only
+    inference latency.
+\end{enumerate}
+
+To investigate the contribution of frequency information, additional
+experiments will evaluate the effect of using different DCT frequency bands.
+These ablation studies will compare classification accuracy and computational
+cost when selected high-frequency coefficients are excluded. The results
+will help determine whether a reduced frequency representation can provide
+a useful trade-off between accuracy and efficiency.
+
+\subsection{Expected Contribution}
+
+The expected contribution is a comparative evaluation of RGB-based and
+JPEG-DCT-domain image classification on CIFAR-10. Rather than assuming that
+compressed-domain processing is always faster, the experiments will measure
+the complete input-processing and inference pipeline to identify when this
+approach offers practical benefits. The project will also investigate how
+frequency-band selection affects classification performance and computational
+efficiency.
 
 \section{Feasibility \& Compute Plan}
 \label{sec:feasibility}
-\todo{State your compute tier (CPU-OK / GPU-light), expected training time per
-experiment, and confirm this fits a laptop-class machine within the project window.}
+
+The project is designed to be feasible within the available project timeline
+by using the CIFAR-10 dataset and separating data preprocessing, model
+training, and performance evaluation into manageable stages. The dataset
+contains 60,000 small images, making it suitable for controlled experiments
+on a GPU-enabled environment. However, training a ResNet-50 model and
+extracting DCT coefficients for the complete dataset may require additional
+computation time.
+
+\subsection{Computational Requirements}
+
+The project will follow a GPU-light strategy, using Google Colab or an
+equivalent environment with a GPU when available. A CPU-based environment
+will serve as a fallback for data preprocessing, debugging, and small-scale
+experiments. GPU acceleration will be prioritized for training the RGB
+baseline and the proposed DCT-domain classifier.
+
+The main computational requirements are:
+
+\begin{itemize}
+    \item \textbf{Programming Language:} Python.
+    \item \textbf{Deep Learning Framework:} PyTorch.
+    \item \textbf{Dataset:} CIFAR-10, containing 50,000 training images
+    and 10,000 test images.
+    \item \textbf{Image Processing:} PIL and \texttt{jpegio} for JPEG
+    encoding and DCT coefficient extraction.
+    \item \textbf{Data Storage:} NumPy files for storing extracted
+    coefficients and model checkpoints.
+    \item \textbf{Hardware:} A GPU-enabled Google Colab runtime or an
+    equivalent GPU environment, with CPU execution available for
+    preprocessing and debugging.
+\end{itemize}
+
+\subsection{Training and Experiment Plan}
+
+The experiments will be conducted incrementally to minimize unnecessary
+computation and reduce the risk of delays. First, a small subset of CIFAR-10
+will be used to validate the JPEG encoding and DCT extraction pipeline.
+Next, the complete dataset will be prepared, and the RGB baseline and
+DCT-domain classifier will be trained and evaluated.
+
+The initial training experiments will use a limited number of epochs to
+verify that both models learn correctly. The number of epochs and other
+hyperparameters will then be adjusted based on preliminary validation
+results and the available compute budget.
+
+The following table presents preliminary planning estimates. Actual
+execution times will be recorded during the experiments and may vary
+depending on the hardware, batch size, number of epochs, and implementation.
+
+\begin{table}[H]
+\centering
+\caption{Estimated computational budget for the project.}
+\label{tab:compute}
+\begin{tabular}{@{}p{0.43\linewidth}p{0.24\linewidth}p{0.23\linewidth}@{}}
+\toprule
+\textbf{Task} & \textbf{Compute Tier} & \textbf{Estimated Time} \\
+\midrule
+JPEG encoding and DCT extraction
+& CPU/GPU environment & 10--60 minutes \\
+RGB ResNet-50 training
+& GPU & 30--120 minutes \\
+DCT-domain classifier training
+& GPU & 15--90 minutes \\
+Accuracy and latency evaluation
+& CPU/GPU environment & 10--30 minutes \\
+Frequency-band ablation experiments
+& GPU & 30--120 minutes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These estimates are preliminary planning ranges rather than measured
+benchmarks. They assume a GPU-enabled environment for training and a
+manageable number of epochs. Full dataset preprocessing, repeated
+experiments, and slower hardware may increase the total execution time.
+
+\subsection{Resource Management and Reproducibility}
+
+To use the available resources efficiently, the project will employ
+mini-batch training, save model checkpoints, and reuse preprocessed
+coefficients across experiments. Training and validation losses will be
+monitored to identify implementation problems before committing to longer
+runs. If GPU availability becomes limited, experiments will initially
+use a smaller training subset and fewer epochs for debugging.
+
+The random seeds, dataset splits, model configurations, and evaluation
+settings will be documented to improve reproducibility. Inference latency
+will be measured under consistent batch-size and hardware conditions,
+with preprocessing time reported separately from model execution time.
+This distinction is necessary to determine whether compressed-domain
+classification reduces the overall computational cost.
+
+\subsection{Project Feasibility}
+
+The project is considered feasible within the project window because
+the dataset is relatively small and the work can be divided into
+independent preprocessing, training, and evaluation stages. The primary
+computational challenge is the cost of training the RGB baseline and
+completing the DCT-domain experiments within the available time.
+
+By validating the pipeline on a small subset before processing the full
+dataset, reusing extracted coefficients, and prioritizing the minimum
+viable deliverable, the team expects to complete the core experiments
+within the project schedule. More extensive frequency-band ablation
+experiments will be performed only if sufficient time and computational
+resources remain.
+
 
 \subsection{Minimum Viable Deliverable (MVP)}
 Develop and evaluate a JPEG-domain image classification pipeline on CIFAR-10. The MVP will:
@@ -142,14 +356,93 @@ Develop and evaluate a JPEG-domain image classification pipeline on CIFAR-10. Th
 Success is defined as achieving at least 88\% top-1 classification accuracy on CIFAR-10 while demonstrating a measurable reduction in inference cost compared to the RGB baseline.
 
 \subsection{Stretch Goal}
-\todo{What you will attempt if the MVP is on track by Week 5--6.}
+
+If the minimum viable deliverable is completed successfully by Week 5--6,
+the project will investigate the effect of DCT frequency-band selection
+on classification accuracy and computational efficiency. The objective
+is to determine whether a subset of frequency coefficients can provide
+a favorable trade-off between predictive performance and computational
+cost.
+
+The experiments will compare the full DCT representation with reduced
+representations that exclude selected high-frequency coefficients.
+Each configuration will be evaluated using CIFAR-10 test accuracy,
+inference latency, and throughput under consistent experimental
+conditions.
+
+Furthermore, the project will investigate the relationship between the
+number of retained frequency coefficients and classification performance.
+The results will be summarized in an accuracy-versus-efficiency table
+and, if sufficient data are available, a comparative plot.
+
+This extension will help identify whether reducing the frequency
+representation can preserve useful image information while improving
+computational efficiency. The stretch goal will be pursued only after
+the RGB baseline and the DCT-domain classifier have been trained and
+evaluated successfully.
+
 
 \section{Risk Assessment}
 \label{sec:risk}
+
+Several technical and computational risks may affect the implementation
+and evaluation of the proposed compressed-domain image classification
+system. The following risks and mitigation strategies have been identified
+to ensure that the project can be completed within the available timeline.
+
 \begin{itemize}[leftmargin=*]
-  \item \todo{Risk 1 and its mitigation / fallback.}
-  \item \todo{Risk 2 and its mitigation / fallback.}
+
+    \item \textbf{Risk 1: Lower Classification Accuracy.}
+    The DCT-domain classifier may achieve lower accuracy than the
+    conventional RGB-based ResNet-50 because the frequency-domain
+    representation and preprocessing choices may affect the information
+    available to the model.
+
+    \textbf{Mitigation:} Validate the preprocessing pipeline, experiment
+    with different model configurations and normalization strategies,
+    and retain the full DCT representation as a reference. If the target
+    accuracy is not achieved, report the actual results and analyze the
+    trade-off between classification accuracy and computational efficiency.
+
+    \item \textbf{Risk 2: High Computational Cost and Limited GPU
+    Availability.}
+    Training the ResNet-50 baseline, extracting DCT coefficients, and
+    conducting multiple experiments may require more time or
+    computational resources than expected.
+
+    \textbf{Mitigation:} Use GPU acceleration when available, validate
+    the pipeline on a small subset before processing the complete
+    dataset, save intermediate results and model checkpoints, and
+    reduce the number of epochs during preliminary experiments.
+    If resources become limited, prioritize the baseline comparison
+    and postpone optional ablation experiments.
+
+    \item \textbf{Risk 3: Incorrect DCT Extraction or Preprocessing.}
+    Errors in JPEG coefficient extraction, dequantization, channel
+    alignment, or data normalization may produce invalid model inputs
+    and negatively affect classification performance.
+
+    \textbf{Mitigation:} Test the extraction pipeline on a small number
+    of images, verify coefficient dimensions and quantization tables,
+    check the handling of Y, Cb, and Cr components, and confirm that
+    the extracted arrays contain valid numerical values before
+    processing the complete dataset.
+
+    \item \textbf{Risk 4: Uncertain Inference Speed Improvements.}
+    Although the proposed method avoids reconstructing RGB images
+    before classification, DCT extraction and preprocessing may
+    introduce additional overhead. Therefore, the proposed approach
+    may not improve end-to-end execution time.
+
+    \textbf{Mitigation:} Measure preprocessing time, model inference
+    latency, and total end-to-end runtime separately under consistent
+    hardware and batch-size conditions. If the proposed approach does
+    not reduce total runtime, analyze the measurements to identify
+    the main computational bottlenecks and report the results
+    objectively.
+
 \end{itemize}
+
 
 \section{Work Breakdown}
 \label{sec:workbreakdown}
