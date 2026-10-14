@@ -36,7 +36,7 @@
 \maketitle
 
 \begin{abstract}
-Image classification systems typically decode JPEG images into RGB pixels before inference. This project investigates whether classification can instead be performed directly on JPEG-domain DCT coefficients. We will compare a DCT-domain neural network against a ResNet-50 trained on decoded RGB images using the CIFAR-10 dataset. Evaluation will focus on classification accuracy and computational efficiency in terms of inference latency and preprocessing cost.
+Deep learning-based image classification systems traditionally operate on fully decoded RGB images, requiring JPEG decompression as a preprocessing step. This work explores compressed-domain image classification by leveraging JPEG Discrete Cosine Transform (DCT) coefficients as model inputs, thereby bypassing full image reconstruction. A DCT-domain classifier is implemented and evaluated on the CIFAR-10 dataset and compared with a ResNet-50 RGB baseline. Performance is measured using classification accuracy, preprocessing overhead, and inference latency. The results provide insight into the trade-offs between compressed-domain and pixel-domain learning and assess the potential of DCT-based representations for efficient image recognition.
 \end{abstract}
 
 \section{Problem Statement \& Motivation}
@@ -85,8 +85,7 @@ Zhang et al. \citep{zhang2024accelerating} & 2024 & Inspires our frequency band 
 
 \section{Dataset \& Baseline Plan}
 \label{sec:data}
-The CIFAR-10 dataset will be used. It contains 50,000 training images and 10,000 test images across ten object categories. Images will be re-encoded as JPEG quality 90 before DCT extraction. The baseline model is a standard ResNet-50 operating on decoded RGB images. The proposed model will operate directly on the JPEG DCT coefficients extracted from the same images.
-
+Data and Baseline. The CIFAR-10 dataset will be used as the benchmark dataset, consisting of 50,000 training images and 10,000 test images spanning ten object categories. To enable compressed-domain analysis, all images will be re-encoded in JPEG format with a quality factor of 100. This setting is chosen to minimize compression artifacts and information loss while preserving the JPEG compressed-domain representation used in this work \citep{gueguen2018faster}. From the JPEG images, quantized luminance (Y) and chrominance (Cb, Cr) DCT coefficients will be extracted and subsequently dequantized using the corresponding JPEG quantization tables to better approximate the original transform-domain representation. The baseline model is a ResNet-50 operating on conventionally decoded RGB images, while the proposed model operates directly on the dequantized JPEG-domain DCT coefficients. Performance will be compared in terms of classification accuracy, preprocessing overhead, and inference efficiency.
 \begin{table}[H]
 \centering
 \caption{Dataset summary.}
@@ -101,39 +100,69 @@ CIFAR-10 & 50,000 train, 10,000 test & https://www.cs.toronto.edu/~kriz/cifar.ht
 \end{table}
 
 \begin{figure}[H]
-  \centering
-  \tikzset{
-      block/.style = {rectangle, draw, fill=blue!10, text width=6.8cm, text centered, rounded corners, minimum height=0.9cm, font=\small},
-      process/.style = {rectangle, draw, fill=orange!15, text width=6.8cm, text centered, minimum height=0.9cm, font=\small},
-      data/.style = {trapezium, trapezium stretches body, fill=green!15, draw, text width=5.8cm, text centered, minimum height=0.8cm, font=\small},
-      arrow/.style = {thick, -{Stealth[scale=1.2]}}
-  }
-  
-  \begin{tikzpicture}[node distance=1.8cm]
-      % Stage 1: CIFAR-10 to JPEG
-      \node (cifar) [data] {CIFAR-10 Dataset\\(50K Train / 10K Test Arrays)};
-      
-      \node (jpeg_save) [process, below=of cifar] {Convert NumPy Arrays to PIL Images\\\& Save as JPEG (Quality = 100)\\Structured by Class Labels};
-      
-      \node (jpeg_dir) [data, below=of jpeg_save] {JPEG Dataset Disk Storage\\(\texttt{jpeg\_dataset/train/} \& \texttt{test/})};
-      
-      % Stage 2: JPEG to DCT .npy
-      \node (jio_read) [process, below=of jpeg_dir] {Parse JPEG Structs via \texttt{jpegio}\\Extract Quantized DCT Arrays (\texttt{coef\_arrays})};
-      
-      \node (dequant) [process, below=of jio_read] {Dequantize Coefficients per Channel:\\\texttt{coef\_dequant = coef\_q * qtbl\_full}\\(Y, Cb, Cr matrices)};
-      
-      \node (npy_save) [data, below=of dequant] {DCT Compressed-Domain Dataset\\(\texttt{*.npy} Dictionaries: Y, Cb, Cr)};
+    \centering
+    \tikzset{
+        block/.style={
+            rectangle, 
+            draw, 
+            fill=blue!10, 
+            minimum width=3.6cm, 
+            minimum height=1.5cm, 
+            align=center, 
+            font=\small
+        },
+        arrow/.style={
+            thick, 
+            -{Stealth[scale=1.2]} % Requires \usetikzlibrary{arrows.meta, positioning}
+        }
+    }
+    \begin{tikzpicture}[node distance=1.2cm and 1.5cm]
+        % --- Row 1 (Left to Right) ---
+        \node (cifar) [block] {
+            CIFAR-10 Dataset\\
+            50,000 Train\\
+            10,000 Test
+        };
+        
+        \node (jpeg) [block, right=of cifar] {
+            JPEG Re-encoding\\
+            Quality Factor = 100\\
+            Minimal Loss
+        };
+        
+        \node (extract) [block, right=of jpeg] {
+            Extract Quantized\\
+            JPEG DCT Coefficients\\
+            (Y, Cb, Cr)
+        };
+        
+        % --- Row 2 (Right to Left) ---
+        \node (dequant) [block, below=of extract] {
+            Dequantize DCT\\
+            Coefficients\\
+            Using JPEG Tables
+        };
+        
+        \node (save) [block, left=of dequant] {
+            Store DCT Dataset\\
+            \texttt{.npy} Files\\
+            (Y, Cb, Cr)
+        };
 
-      % Connectors
-      \draw [arrow] (cifar) -- (jpeg_save);
-      \draw [arrow] (jpeg_save) -- (jpeg_dir);
-      \draw [arrow] (jpeg_dir) -- (jio_read);
-      \draw [arrow] (jio_read) -- (dequant);
-      \draw [arrow] (dequant) -- (npy_save);
-  \end{tikzpicture}
-  \caption{Data preprocessing pipeline illustrating the translation of raw CIFAR-10 pixel batches into dequantized DCT coefficients saved as compressed dictionary blocks.}
-  \label{fig:pipeline_flowchart}
+        % --- Connection Arrows ---
+        \draw[arrow] (cifar) -- (jpeg);
+        \draw[arrow] (jpeg) -- (extract);
+        
+        % Downward arrow to transition to Row 2
+        \draw[arrow] (extract) -- (dequant);
+        
+        % Leftward arrow in Row 2
+        \draw[arrow] (dequant) -- (save);
+    \end{tikzpicture}
+\caption{Compressed-domain preprocessing pipeline. CIFAR-10 images are re-encoded as JPEG files with quality factor 100 to minimize compression artifacts while preserving access to JPEG transform-domain information. Quantized DCT coefficients are extracted, dequantized using the corresponding quantization tables, and stored as Y, Cb, and Cr coefficient matrices for model training and evaluation.}
+\label{fig:pipeline_flowchart}
 \end{figure}
+
 
 \section{Proposed Method}
 \label{sec:method}
@@ -152,7 +181,7 @@ classification. First, CIFAR-10 images are encoded as JPEG files using a
 consistent quality setting. Next, the \texttt{jpegio} library is used to
 extract the quantized DCT coefficients and quantization tables for the
 luminance and chrominance components (Y, Cb, and Cr). The coefficients are
-then dequantized and normalized to obtain numerical representations suitable
+then dequantized to obtain numerical representations suitable
 for neural network training. The resulting coefficient arrays are stored in
 NumPy format to facilitate efficient data loading.
 
@@ -254,7 +283,7 @@ The main computational requirements are:
 
 \begin{itemize}
     \item \textbf{Programming Language:} Python.
-    \item \textbf{Deep Learning Framework:} PyTorch.
+    \item \textbf{Deep Learning Framework:} PyTorch and Tensorflow.
     \item \textbf{Dataset:} CIFAR-10, containing 50,000 training images
     and 10,000 test images.
     \item \textbf{Image Processing:} PIL and \texttt{jpegio} for JPEG
@@ -292,13 +321,13 @@ depending on the hardware, batch size, number of epochs, and implementation.
 \textbf{Task} & \textbf{Compute Tier} & \textbf{Estimated Time} \\
 \midrule
 JPEG encoding and DCT extraction
-& CPU/GPU environment & 10--60 minutes \\
+& CPU/GPU & 10--20 minutes \\
 RGB ResNet-50 training
 & GPU & 30--120 minutes \\
 DCT-domain classifier training
 & GPU & 15--90 minutes \\
 Accuracy and latency evaluation
-& CPU/GPU environment & 10--30 minutes \\
+& CPU/GPU & 10--30 minutes \\
 Frequency-band ablation experiments
 & GPU & 30--120 minutes \\
 \bottomrule
@@ -448,8 +477,7 @@ to ensure that the project can be completed within the available timeline.
 \label{sec:workbreakdown}
 \begin{table}[H]
 \centering
-\caption{Milestone task allocation (see also the project catalog entry for this
-project).}
+\caption{Milestone task allocation.}
 \label{tab:tasks}
 \begin{tabular}{@{}p{0.12\linewidth}p{0.26\linewidth}p{0.26\linewidth}p{0.26\linewidth}@{}}
 \toprule
