@@ -36,7 +36,7 @@
 \maketitle
 
 \begin{abstract}
-Deep learning-based image classification systems traditionally operate on fully decoded RGB images, requiring JPEG decompression as a preprocessing step. This work explores compressed-domain image classification by leveraging JPEG Discrete Cosine Transform (DCT) coefficients as model inputs, thereby bypassing full image reconstruction. A DCT-domain classifier is implemented and evaluated on the CIFAR-10 dataset and compared with a ResNet-50 RGB baseline. Performance is measured using classification accuracy, preprocessing overhead, and inference latency. The results provide insight into the trade-offs between compressed-domain and pixel-domain learning and assess the potential of DCT-based representations for efficient image recognition.
+Deep learning-based image classification systems traditionally operate on fully decoded RGB images, requiring JPEG decompression as a preprocessing step. This work explores compressed-domain image classification by leveraging JPEG Discrete Cosine Transform (DCT) coefficients as model inputs, thereby bypassing full image reconstruction. A DCT-domain classifier is implemented and evaluated on the CIFAR-10 dataset and compared with a ResNet-18 RGB baseline. Performance is measured using classification accuracy, preprocessing overhead, and inference latency. The results provide insight into the trade-offs between compressed-domain and pixel-domain learning and assess the potential of DCT-based representations for efficient image recognition.
 \end{abstract}
 
 \section{Problem Statement \& Motivation}
@@ -52,7 +52,7 @@ efficient image processing. This project investigates whether image
 classification can be performed directly on JPEG-domain Discrete Cosine
 Transform (DCT) coefficients, avoiding full image reconstruction before
 inference. The proposed approach will be evaluated on the CIFAR-10 dataset
-and compared with a conventional ResNet-50 model operating on decoded RGB
+and compared with a conventional ResNet-18 model operating on decoded RGB
 images. This problem is closely related to Digital Image Processing
 concepts, particularly JPEG compression, frequency-domain representation,
 quantization, and the DCT, which transforms image blocks from the spatial
@@ -85,7 +85,7 @@ Zhang et al. \citep{zhang2024accelerating} & 2024 & Inspires our frequency band 
 
 \section{Dataset \& Baseline Plan}
 \label{sec:data}
-Data and Baseline. The CIFAR-10 dataset will be used as the benchmark dataset, consisting of 50,000 training images and 10,000 test images spanning ten object categories. To enable compressed-domain analysis, all images will be re-encoded in JPEG format with a quality factor of 100. This setting is chosen to minimize compression artifacts and information loss while preserving the JPEG compressed-domain representation used in this work \citep{gueguen2018faster}. From the JPEG images, quantized luminance (Y) and chrominance (Cb, Cr) DCT coefficients will be extracted and subsequently dequantized using the corresponding JPEG quantization tables to better approximate the original transform-domain representation. The baseline model is a ResNet-50 operating on conventionally decoded RGB images, while the proposed model operates directly on the dequantized JPEG-domain DCT coefficients. Performance will be compared in terms of classification accuracy, preprocessing overhead, and inference efficiency.
+Data and Baseline. The CIFAR-10 dataset will be used as the benchmark dataset, consisting of 50,000 training images and 10,000 test images spanning ten object categories. To enable compressed-domain analysis, all images will be re-encoded in JPEG format with a quality factor of 100. This setting is chosen to minimize compression artifacts and information loss while preserving the JPEG compressed-domain representation used in this work \citep{gueguen2018faster}. From the JPEG images, quantized luminance (Y) and chrominance (Cb, Cr) DCT coefficients will be extracted and subsequently dequantized using the corresponding JPEG quantization tables to better approximate the original transform-domain representation. The baseline model is a ResNet-18 operating on conventionally decoded RGB images, while the proposed model operates directly on the dequantized JPEG-domain DCT coefficients. Performance will be compared in terms of classification accuracy, preprocessing overhead, and inference efficiency.
 \begin{table}[H]
 \centering
 \caption{Dataset summary.}
@@ -215,7 +215,7 @@ preliminary experiments.
 
 \subsection{RGB Baseline and Experimental Comparison}
 
-A ResNet-50 model trained on decoded RGB images will serve as the baseline.
+A ResNet-18 model trained on decoded RGB images will serve as the baseline.
 Both approaches will use the same CIFAR-10 training and test splits and the
 same JPEG-encoded image content wherever applicable. Training procedures,
 evaluation conditions, and hardware settings will be documented to make the
@@ -267,7 +267,7 @@ The project is designed to be feasible within the available project timeline
 by using the CIFAR-10 dataset and separating data preprocessing, model
 training, and performance evaluation into manageable stages. The dataset
 contains 60,000 small images, making it suitable for controlled experiments
-on a GPU-enabled environment. However, training a ResNet-50 model and
+on a GPU-enabled environment. However, training a ResNet-18 model and
 extracting DCT coefficients for the complete dataset may require additional
 computation time.
 
@@ -322,7 +322,7 @@ depending on the hardware, batch size, number of epochs, and implementation.
 \midrule
 JPEG encoding and DCT extraction
 & CPU/GPU & 10--20 minutes \\
-RGB ResNet-50 training
+RGB ResNet-18 training
 & GPU & 30--120 minutes \\
 DCT-domain classifier training
 & GPU & 15--90 minutes \\
@@ -377,7 +377,7 @@ Develop and evaluate a JPEG-domain image classification pipeline on CIFAR-10. Th
 \begin{enumerate}
     \item Re-encode CIFAR-10 images as JPEG.
     \item Extract Y/Cb/Cr DCT coefficients.
-    \item Train a ResNet-50 RGB baseline.
+    \item Train a ResNet-18 RGB baseline.
     \item Train a DCT-domain classifier.
     \item Measure classification accuracy, latency, and throughput.
 \end{enumerate}
@@ -423,7 +423,7 @@ to ensure that the project can be completed within the available timeline.
 
     \item \textbf{Risk 1: Lower Classification Accuracy.}
     The DCT-domain classifier may achieve lower accuracy than the
-    conventional RGB-based ResNet-50 because the frequency-domain
+    conventional RGB-based ResNet-18 because the frequency-domain
     representation and preprocessing choices may affect the information
     available to the model.
 
@@ -435,7 +435,7 @@ to ensure that the project can be completed within the available timeline.
 
     \item \textbf{Risk 2: High Computational Cost and Limited GPU
     Availability.}
-    Training the ResNet-50 baseline, extracting DCT coefficients, and
+    Training the ResNet-18 baseline, extracting DCT coefficients, and
     conducting multiple experiments may require more time or
     computational resources than expected.
 
