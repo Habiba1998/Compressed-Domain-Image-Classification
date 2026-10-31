@@ -191,6 +191,117 @@ does not apply an inverse DCT transformation to reconstruct RGB images before
 classification. Instead, it processes the extracted frequency-domain
 representations directly.
 
+\subsubsection{Proposed Algorithm}
+
+The following pseudocode summarizes the main steps of the proposed
+compressed-domain image classification approach, from JPEG input
+processing to final class prediction.
+
+\begin{algorithm}[H]
+\caption{Compressed-Domain Image Classification}
+\label{alg:compressed_classification}
+\begin{algorithmic}[1]
+
+\Require JPEG images, trained DCT-domain CNN model
+\Ensure Predicted image classes
+
+\ForAll{JPEG images in the dataset}
+    \State Load the JPEG image
+    \State Extract quantized DCT coefficients for Y, Cb, and Cr
+    \State Retrieve the corresponding JPEG quantization tables
+
+    \For{each component $c \in \{Y, Cb, Cr\}$}
+        \State Dequantize coefficients using the corresponding
+        quantization table
+    \EndFor
+
+    \State Preprocess and normalize the DCT components
+    \State Store the processed coefficients
+\EndFor
+
+\State Initialize the DCT-domain CNN classifier
+\State Train the classifier using the training dataset
+\State Evaluate the trained model using the test dataset
+
+\ForAll{test samples}
+    \State Pass the DCT representation to the trained CNN
+    \State Obtain the output class probabilities
+    \State Select the class with the highest probability
+\EndFor
+
+\State \Return Predicted classes
+
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsubsection{Proposed Classification Architecture}
+
+Figure~\ref{fig:proposed_architecture} illustrates the main
+classification stages, starting from JPEG-domain coefficient
+extraction and ending with the predicted image category.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    block/.style={
+        rectangle,
+        rounded corners,
+        draw=black,
+        fill=blue!8,
+        text width=3.5cm,
+        minimum height=1cm,
+        align=center,
+        font=\small
+    },
+    arrow/.style={
+        thick,
+        -{Stealth}
+    },
+    node distance=0.65cm
+]
+
+\node (input) [block] {
+    JPEG Input Images
+};
+
+\node (extract) [block, below=of input] {
+    Extract Quantized DCT Coefficients\\
+    (Y, Cb, Cr)
+};
+
+\node (dequant) [block, below=of extract] {
+    Dequantization Using\\
+    JPEG Quantization Tables
+};
+
+\node (preprocess) [block, below=of dequant] {
+    DCT Preprocessing\\
+    Normalization and Alignment
+};
+
+\node (cnn) [block, below=of preprocess] {
+    DCT-Domain CNN Classifier
+};
+
+\node (output) [block, below=of cnn] {
+    Predicted CIFAR-10 Class
+};
+
+\draw [arrow] (input) -- (extract);
+\draw [arrow] (extract) -- (dequant);
+\draw [arrow] (dequant) -- (preprocess);
+\draw [arrow] (preprocess) -- (cnn);
+\draw [arrow] (cnn) -- (output);
+
+\end{tikzpicture}
+
+\caption{Proposed compressed-domain image classification architecture.
+The classifier operates directly on preprocessed JPEG DCT coefficients
+without reconstructing RGB images.}
+\label{fig:proposed_architecture}
+\end{figure}
+
 \subsection{DCT-Domain Classifier Architecture}
 
 We plan to develop a convolutional neural network (CNN) that accepts the
