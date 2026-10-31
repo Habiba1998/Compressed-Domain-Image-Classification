@@ -307,6 +307,17 @@ To rigorously evaluate the proposed DCT-domain classification approach against c
     \item \textbf{State-of-the-Art (SOTA) Protocol:} Comparative evaluation of our empirical results against published performance benchmarks and figures reported in primary references \citep{gueguen2018faster}.
 \end{itemize}
 
+To rigorously evaluate the compressed-domain classification approach, we implement the following core evaluation protocols:
+
+\begin{itemize}
+    \item \textbf{End-to-End Latency Protocol:} Measures total runtime by combining preprocessing (RGB decoding vs. DCT extraction) and model inference latency.
+    \item \textbf{Hardware \& Environment Standardization Protocol:} Conducts all timing measurements on standardized hardware configurations to ensure fair comparisons \citep{canziani2016analysis}.
+    \item \textbf{Throughput / FPS Protocol:} Evaluates processing speed by quantifying how many images each model can process per second.
+    \item \textbf{Baseline Comparison Protocol:} Directly benchmarks performance against a standard RGB-ResNet architecture \citep{gueguen2018faster}.
+    \item \textbf{Ablation Study Protocol:} Systematically removes parts of the input data (such as specific DCT frequencies) to analyze their impact on classification results \citep{meyes2019ablation}.
+    \item \textbf{Accuracy vs. Complexity/Speed Trade-off Protocol:} Draws trade-off curves illustrating how variations in speed impact Top-1 and Top-5 classification accuracy \citep{gueguen2018faster}.
+\end{itemize}
+
 \section{Feasibility \& Compute Plan}
 \label{sec:feasibility}
 
