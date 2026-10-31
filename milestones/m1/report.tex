@@ -234,96 +234,23 @@ processing to final class prediction.
 \end{algorithmic}
 \end{algorithm}
 
-
-\subsubsection{Proposed Classification Architecture}
-
-Figure~\ref{fig:proposed_architecture} illustrates the main
-classification stages, starting from JPEG-domain coefficient
-extraction and ending with the predicted image category.
-
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[
-    block/.style={
-        rectangle,
-        rounded corners,
-        draw=black,
-        fill=blue!8,
-        text width=3.5cm,
-        minimum height=1cm,
-        align=center,
-        font=\small
-    },
-    arrow/.style={
-        thick,
-        -{Stealth}
-    },
-    node distance=0.65cm
-]
-
-\node (input) [block] {
-    JPEG Input Images
-};
-
-\node (extract) [block, below=of input] {
-    Extract Quantized DCT Coefficients\\
-    (Y, Cb, Cr)
-};
-
-\node (dequant) [block, below=of extract] {
-    Dequantization Using\\
-    JPEG Quantization Tables
-};
-
-\node (preprocess) [block, below=of dequant] {
-    DCT Preprocessing\\
-    Normalization and Alignment
-};
-
-\node (cnn) [block, below=of preprocess] {
-    DCT-Domain CNN Classifier
-};
-
-\node (output) [block, below=of cnn] {
-    Predicted CIFAR-10 Class
-};
-
-\draw [arrow] (input) -- (extract);
-\draw [arrow] (extract) -- (dequant);
-\draw [arrow] (dequant) -- (preprocess);
-\draw [arrow] (preprocess) -- (cnn);
-\draw [arrow] (cnn) -- (output);
-
-\end{tikzpicture}
-
-\caption{Proposed compressed-domain image classification architecture.
-The classifier operates directly on preprocessed JPEG DCT coefficients
-without reconstructing RGB images.}
-\label{fig:proposed_architecture}
-\end{figure}
-
 \subsection{DCT-Domain Classifier Architecture}
 
-We plan to develop a convolutional neural network (CNN) that accepts the
-preprocessed DCT coefficient representations as input. The network will
-contain convolutional layers for feature extraction, nonlinear activation
-functions, and pooling or downsampling operations to learn discriminative
-features from the frequency-domain data. The extracted features will then
-pass through a classification head that produces scores for the ten CIFAR-10
-categories.
+Figure~\ref{fig:proposed_architecture} illustrates the proposed
+compressed-domain image classification pipeline. The system extracts
+DCT coefficients directly from JPEG images, applies dequantization
+and preprocessing, and then uses a DCT-domain CNN classifier to
+predict the corresponding CIFAR-10 class.
 
-The Y, Cb, and Cr components will be handled consistently during preprocessing.
-Because JPEG chroma subsampling can produce different spatial dimensions for
-luminance and chrominance coefficients, their dimensions and representations
-will be checked before combining them or passing them to the network.
-Normalization and any required resizing or alignment operations will be
-defined using the training data and applied consistently to the validation
-and test sets.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]
+    {images/proposed_architecture.png}
+    \caption{Proposed compressed-domain image classification architecture.}
+    \label{fig:proposed_architecture}
+\end{figure}
 
-The architecture will be kept sufficiently lightweight to investigate the
-potential computational advantages of compressed-domain classification.
-Model configuration and training hyperparameters will be selected through
-preliminary experiments.
+
 
 \subsection{RGB Baseline and Experimental Comparison}
 
