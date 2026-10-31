@@ -260,6 +260,52 @@ approach offers practical benefits. The project will also investigate how
 frequency-band selection affects classification performance and computational
 efficiency.
 
+\section{Experimental Setup \& Evaluation Protocols}
+\label{sec:protocols}
+
+To rigorously evaluate the proposed DCT-domain classification approach against conventional RGB pipelines, we define four main sets of evaluation protocols.
+
+\subsection{Performance \& Efficiency Protocols}
+\begin{itemize}
+    \item \textbf{End-to-End Latency Protocol:} We measure and contrast the total latency of both pipelines:
+    \[
+    \text{Latency}_{\text{RGB}} = t_{\text{Decode}} + t_{\text{Inference (RGB)}}
+    \]
+    \[
+    \text{Latency}_{\text{DCT}} = t_{\text{DCT Extraction}} + t_{\text{Inference (DCT)}}
+    \]
+    This isolates the time saved by bypassing full spatial RGB reconstruction.
+    
+    \item \textbf{Hardware \& Environment Standardization Protocol:} All timing measurements are conducted on standardized laptop/resource-constrained hardware (e.g., dedicated CPU/GPU environments) with pinned thread counts and batch sizes, as outlined by \citet{canziani2016analysis}.
+    
+    \item \textbf{Throughput / FPS Protocol:} Measures the system processing speed in terms of frames (images) per second (FPS) for each model variant across identical batch configurations.
+    
+    \item \textbf{Resource Footprint Protocol:} Tracks peak CPU/GPU memory usage and computational FLOPs for both spatial and frequency-domain models.
+\end{itemize}
+
+\subsection{Ablation \& Structural Protocols}
+\begin{itemize}
+    \item \textbf{Ablation Study Protocol:} Following the methodology of \citet{meyes2019ablation}, we systematically zero out or remove specific high-frequency components from the DCT coefficient matrix to quantify their contribution to overall feature representation and model performance.
+    
+    \item \textbf{Accuracy vs. Complexity/Speed Trade-off Protocol:} In line with \citet{gueguen2018faster}, we generate empirical trade-off curves plotting Top-1 and Top-5 classification accuracy against throughput/latency under various frequency-band truncations.
+\end{itemize}
+
+\subsection{Validation \& Robustness Protocols}
+\begin{itemize}
+    \item \textbf{Cross-Validation Protocol ($k$-fold):} A standard $k$-fold cross-validation scheme is employed across the dataset to ensure model stability and confirm that performance metrics are statistically robust and independent of specific random train-test splits.
+    
+    \item \textbf{Robustness / Stress Testing Protocol:} Synthetic noise (e.g., Gaussian noise, compression artifacts) is introduced to the input data to assess the structural stability and fault tolerance of frequency-domain features compared to RGB pixel features.
+    
+    \item \textbf{Out-of-Distribution / Generalization Protocol:} Models trained on CIFAR-10 are evaluated on out-of-distribution (OOD) testing datasets (e.g., CIFAR-100 or ImageNet sub-splits) to assess domain generalization capabilities.
+\end{itemize}
+
+\subsection{Benchmarking Protocols}
+\begin{itemize}
+    \item \textbf{Baseline Comparison Protocol:} Direct quantitative benchmark comparison against an uncompressed, standard RGB-ResNet architecture \cite{gueguen2018faster}.
+    
+    \item \textbf{State-of-the-Art (SOTA) Protocol:} Comparative evaluation of our empirical results against published performance benchmarks and figures reported in primary references \citep{gueguen2018faster}.
+\end{itemize}
+
 \section{Feasibility \& Compute Plan}
 \label{sec:feasibility}
 
