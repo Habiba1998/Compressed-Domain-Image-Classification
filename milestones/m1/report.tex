@@ -13,7 +13,14 @@
 \usepackage[round]{natbib}
 \usepackage{hyperref}
 \usepackage{float}
-\hypersetup{colorlinks=true, linkcolor=blue!50!black, citecolor=blue!50!black, urlcolor=blue!50!black}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    citecolor=blue!50!black,
+    urlcolor=blue!50!black
+}
 \usepackage{enumitem}
 \usepackage{xcolor}
 
@@ -202,10 +209,10 @@ processing to final class prediction.
 \label{alg:compressed_classification}
 \begin{algorithmic}[1]
 
-\Require JPEG images, trained DCT-domain CNN model
-\Ensure Predicted image classes
+\Require JPEG training and test datasets
+\Ensure Predicted classes for the test images
 
-\ForAll{JPEG images in the dataset}
+\ForAll{JPEG images in the training and test datasets}
     \State Load the JPEG image
     \State Extract quantized DCT coefficients for Y, Cb, and Cr
     \State Retrieve the corresponding JPEG quantization tables
@@ -216,12 +223,12 @@ processing to final class prediction.
     \EndFor
 
     \State Preprocess and normalize the DCT components
-    \State Store the processed coefficients
+    \State Store the processed coefficients with their labels and split
 \EndFor
 
 \State Initialize the DCT-domain CNN classifier
-\State Train the classifier using the training dataset
-\State Evaluate the trained model using the test dataset
+\State Train the classifier using only the training data
+\State Evaluate the trained model using the test data
 
 \ForAll{test samples}
     \State Pass the DCT representation to the trained CNN
