@@ -26,11 +26,11 @@
 \title{\LARGE Project Proposal \& Literature Review \\[4pt]
 \large Compressed-Domain Image Classification}
 \author{
-  Habiba Mounir \and
+  Habiba Mounir Sayed Abd El-Rahim\and
   \ Hagar Medhat \and
   \ Shahd Ahmed
 }
-\date{Milestone 1 --- \todo{Date} \\{} [CSE681] --- Digital Image Processing}
+\date{Milestone 1 --- 2 November 2026 \\{} [CSE681] --- Digital Image Processing}
 
 \begin{document}
 \maketitle
@@ -86,7 +86,7 @@ Zhang et al. \citep{zhang2024accelerating} & 2024 & Inspires our frequency band 
 
 \section{Dataset \& Baseline Plan}
 \label{sec:data}
-Data and Baseline. The CIFAR-10 dataset will be used as the benchmark dataset, consisting of 50,000 training images and 10,000 test images spanning ten object categories. To enable compressed-domain analysis, all images will be re-encoded in JPEG format with a quality factor of 100. This setting is chosen to minimize compression artifacts and information loss while preserving the JPEG compressed-domain representation used in this work \citep{gueguen2018faster}. From the JPEG images, quantized luminance (Y) and chrominance (Cb, Cr) DCT coefficients will be extracted and subsequently dequantized using the corresponding JPEG quantization tables to better approximate the original transform-domain representation. The baseline model is a ResNet-18 operating on conventionally decoded RGB images, while the proposed model operates directly on the dequantized JPEG-domain DCT coefficients. Performance will be compared in terms of classification accuracy, preprocessing overhead, and inference efficiency.
+The CIFAR-10 dataset will be used as the benchmark dataset. The standard split consisting of 50,000 training images and 10,000 test images across ten object categories will be utilized. The dataset is publicly available through the University of Toronto for research and educational purposes. As a baseline, the standard ResNet-18 architecture operating on conventionally decoded RGB images will be reproduced and used for comparison against the proposed approach.
 \begin{table}[H]
 \centering
 \caption{Dataset summary.}
@@ -539,7 +539,7 @@ to ensure that the project can be completed within the available timeline.
 \label{tab:tasks}
 \begin{tabular}{@{}p{0.12\linewidth}p{0.26\linewidth}p{0.26\linewidth}p{0.26\linewidth}@{}}
 \toprule
-\textbf{Milestone} & \textbf{Student A} & \textbf{Student B} & \textbf{Student C} \\
+\textbf{Milestone} & \textbf{Habiba Mounir Sayed Abd El-Rahim} & \textbf{Hagar Medhat} & \textbf{Shahd Ahmed} \\
 \midrule
 M1 (Wk 3) & JPEG-DCT extraction pipeline; dataset subset chosen & Design DCT-domain classifier architecture & Define accuracy/speed comparison protocol \\
 M2 (Wk 6) & RGB-ResNet baseline trained, accuracy recorded & DCT-domain classifier, first trained checkpoint & Preliminary accuracy + speed comparison \\
