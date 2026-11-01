@@ -34,8 +34,8 @@
 \large Compressed-Domain Image Classification}
 \author{
   Habiba Mounir Sayed Abd El-Rahim\and
-  \ Hagar Medhat \and
-  \ Shahd Ahmed
+  \ Hagar Medhat Fawzy \and
+  \ Shahd Ahmed Samer
 }
 \date{Milestone 1 --- 2 November 2026 \\{} [CSE681] --- Digital Image Processing}
 
@@ -93,7 +93,9 @@ Zhang et al. \citep{zhang2024accelerating} & 2024 & Inspires our frequency band 
 
 \section{Dataset \& Baseline Plan}
 \label{sec:data}
-The CIFAR-10 dataset will be used as the benchmark dataset. The standard split consisting of 50,000 training images and 10,000 test images across ten object categories will be utilized. The dataset is publicly available through the University of Toronto for research and educational purposes. As a baseline, the standard ResNet-18 architecture operating on conventionally decoded RGB images will be reproduced and used for comparison against the proposed approach.
+The CIFAR-10 dataset will be used as the benchmark dataset. The standard split consisting of 50,000 training images and 10,000 test images across ten object categories will be utilized. The dataset is publicly available through the University of Toronto for research and educational purposes.
+
+As a baseline, the standard ResNet-18 architecture operating on conventionally decoded RGB images will be reproduced and used for comparison against the proposed approach. To ensure a fair comparison and improve model generalization, data augmentation techniques such as random cropping, horizontal flipping, and normalization may be incorporated if evidence of overfitting is observed during training. Any augmentation strategy applied to the proposed method will also be applied consistently to the baseline model under the same conditions.
 \begin{table}[H]
 \centering
 \caption{Dataset summary.}
@@ -121,11 +123,10 @@ CIFAR-10 & 50,000 train, 10,000 test & https://www.cs.toronto.edu/~kriz/cifar.ht
         },
         arrow/.style={
             thick, 
-            -{Stealth[scale=1.2]} % Requires \usetikzlibrary{arrows.meta, positioning}
+            -{Stealth[scale=1.2]}
         }
     }
     \begin{tikzpicture}[node distance=1.2cm and 1.5cm]
-        % --- Row 1 (Left to Right) ---
         \node (cifar) [block] {
             CIFAR-10 Dataset\\
             50,000 Train\\
@@ -137,37 +138,11 @@ CIFAR-10 & 50,000 train, 10,000 test & https://www.cs.toronto.edu/~kriz/cifar.ht
             Quality Factor = 100\\
             Minimal Loss
         };
-        
-        \node (extract) [block, right=of jpeg] {
-            Extract Quantized\\
-            JPEG DCT Coefficients\\
-            (Y, Cb, Cr)
-        };
-        
-        % --- Row 2 (Right to Left) ---
-        \node (dequant) [block, below=of extract] {
-            Dequantize DCT\\
-            Coefficients\\
-            Using JPEG Tables
-        };
-        
-        \node (save) [block, left=of dequant] {
-            Store DCT Dataset\\
-            \texttt{.npy} Files\\
-            (Y, Cb, Cr)
-        };
 
         % --- Connection Arrows ---
         \draw[arrow] (cifar) -- (jpeg);
-        \draw[arrow] (jpeg) -- (extract);
-        
-        % Downward arrow to transition to Row 2
-        \draw[arrow] (extract) -- (dequant);
-        
-        % Leftward arrow in Row 2
-        \draw[arrow] (dequant) -- (save);
     \end{tikzpicture}
-\caption{Compressed-domain preprocessing pipeline. CIFAR-10 images are re-encoded as JPEG files with quality factor 100 to minimize compression artifacts while preserving access to JPEG transform-domain information. Quantized DCT coefficients are extracted, dequantized using the corresponding quantization tables, and stored as Y, Cb, and Cr coefficient matrices for model training and evaluation.}
+\caption{Compressed-domain preprocessing pipeline. CIFAR-10 images are re-encoded as JPEG files with quality factor 100 to minimize compression artifacts while preserving access to JPEG transform-domain information.}
 \label{fig:pipeline_flowchart}
 \end{figure}
 
@@ -330,102 +305,75 @@ branches, feature concatenation, and final classification layers.
 \end{figure}
 
 
-\subsection{RGB Baseline and Experimental Comparison}
-
-A ResNet-18 model trained on decoded RGB images will serve as the baseline.
-Both approaches will use the same CIFAR-10 training and test splits and the
-same JPEG-encoded image content wherever applicable. Training procedures,
-evaluation conditions, and hardware settings will be documented to make the
-comparison as fair and reproducible as possible.
-
-The evaluation will focus on the following metrics:
-
-\begin{enumerate}
-    \item \textbf{Classification Accuracy:} Top-1 accuracy on the CIFAR-10
-    test set to measure the predictive performance of each model.
-
-    \item \textbf{Inference Latency:} The average time required to classify
-    an image or batch of images under controlled hardware and batch-size
-    settings.
-
-    \item \textbf{Preprocessing Cost:} The time required to prepare the input
-    representation, including JPEG decoding for the RGB baseline and DCT
-    coefficient extraction for the proposed approach.
-
-    \item \textbf{Throughput:} The number of images processed per second
-    under the same evaluation conditions.
-
-    \item \textbf{End-to-End Runtime:} The total time required for input
-    preparation and model inference, reported separately from model-only
-    inference latency.
-\end{enumerate}
-
-To investigate the contribution of frequency information, additional
-experiments will evaluate the effect of using different DCT frequency bands.
-These ablation studies will compare classification accuracy and computational
-cost when selected high-frequency coefficients are excluded. The results
-will help determine whether a reduced frequency representation can provide
-a useful trade-off between accuracy and efficiency.
-
 \subsection{Evaluation Protocols}
 \label{subsec:protocols}
 
-To evaluate the proposed compressed-domain classification approach against conventional RGB pipelines, we establish four comprehensive sets of evaluation protocols:
+To evaluate the proposed compressed-domain image classification approach, a range of evaluation methodologies were reviewed from prior literature. These protocols are categorized into candidate evaluation methods and the specific subset selected for implementation in this study.
 
-\subsubsection{Performance \& Efficiency Protocols}
+\subsubsection{Candidate Evaluation Protocols}
+The literature identifies several protocols used to evaluate and compare compressed-domain against spatial-domain image classification systems.
+
+\paragraph{Performance \& Efficiency Protocols}
 \begin{itemize}
-    \item \textbf{End-to-End Latency Protocol:} We measure and contrast the total runtime latency of both processing pipelines:
-    \[
-    \text{Latency}_{\text{RGB}} = t_{\text{Decode}} + t_{\text{Inference (RGB)}}
-    \]
-    \[
-    \text{Latency}_{\text{DCT}} = t_{\text{DCT Extraction}} + t_{\text{Inference (DCT)}}
-    \]
+    \item \textbf{End-to-End Latency Protocol:} Measures and contrasts the total runtime latency of both processing pipelines:
+    \begin{align*}
+        \text{Latency}_{\text{RGB}} &= t_{\text{Decode}} + t_{\text{Inference (RGB)}} \\
+        \text{Latency}_{\text{DCT}} &= t_{\text{DCT Extraction}} + t_{\text{Inference (DCT)}}
+    \end{align*}
     This comparison isolates the precise computational time saved by bypassing full spatial RGB reconstruction.
 
-    \item \textbf{Hardware \& Environment Standardization Protocol:} All execution times and benchmarking experiments are conducted on standardized laptop and resource-constrained hardware setups (with fixed thread counts and batch sizes) as outlined by \citet{canziani2016analysis}.
+    \item \textbf{Hardware \& Environment Standardization Protocol:} Execution times and benchmarking experiments are conducted on standardized, resource-constrained hardware setups (with fixed thread counts and batch sizes) as outlined by \citet{canziani2016analysis}.
 
-    \item \textbf{Throughput / FPS Protocol:} Measures system processing speed in terms of frames (images) per second (FPS) for each model variant across identical batch configurations to determine how many images each model can process per second.
+    \item \textbf{Throughput / FPS Protocol:} Measures system processing speed in frames per second (FPS) for each model variant across identical batch configurations.
 
     \item \textbf{Resource Footprint Protocol:} Tracks peak CPU/GPU memory usage and total computational FLOPs required by both spatial-domain and frequency-domain pipelines.
 \end{itemize}
 
-\subsubsection{Ablation \& Structural Protocols}
+\paragraph{Ablation \& Structural Protocols}
 \begin{itemize}
-    \item \textbf{Ablation Study Protocol:} Following the methodology of \citet{meyes2019ablation}, we systematically prune or zero out specific high-frequency components from the DCT coefficient matrix to analyze how removing frequency bands affects classification performance and feature extraction.
+    \item \textbf{Ablation Study Protocol:} Following \citet{meyes2019ablation}, high-frequency components are systematically pruned or zeroed out from the DCT coefficient matrix to analyze how removing specific frequency bands affects feature extraction and accuracy.
 
-    \item \textbf{Accuracy vs. Complexity/Speed Trade-off Protocol:} In line with \citet{gueguen2018faster}, we generate empirical trade-off curves illustrating how changes in processing speed affect Top-1 and Top-5 classification accuracy under various frequency-band truncations.
+    \item \textbf{Accuracy vs.\ Complexity/Speed Trade-off Protocol:} Following \citet{gueguen2018faster}, empirical trade-off curves are generated to illustrate how variations in processing speed impact Top-1 and Top-5 classification accuracy under frequency-band truncations.
 \end{itemize}
 
-\subsubsection{Validation \& Robustness Protocols}
+\paragraph{Validation \& Robustness Protocols}
 \begin{itemize}
-    \item \textbf{Cross-Validation Protocol ($k$-fold):} A standard $k$-fold cross-validation scheme is employed to ensure that model accuracy is statistically consistent and not dependent on a single random data split.
+    \item \textbf{Cross-Validation Protocol ($k$-fold):} A standard $k$-fold cross-validation scheme ensures that classification accuracy is statistically consistent across data splits.
 
-    \item \textbf{Robustness / Stress Testing Protocol:} Synthetic noise and compression artifacts are introduced to input data to assess the structural stability and fault tolerance of frequency-domain features relative to RGB pixels.
+    \item \textbf{Robustness / Stress Testing Protocol:} Synthetic noise and compression artifacts are introduced to assess the structural stability and fault tolerance of frequency-domain features relative to RGB pixels.
 
-    \item \textbf{Out-of-Distribution / Generalization Protocol:} Models trained on CIFAR-10 are evaluated on out-of-distribution (OOD) test sets to evaluate their generalization capabilities to completely different data sources.
+    \item \textbf{Out-of-Distribution / Generalization Protocol:} Models trained on CIFAR-10 are evaluated on out-of-distribution (OOD) test sets to gauge generalization capability across distinct data sources.
 \end{itemize}
 
-\subsubsection{Benchmarking Protocols}
+\paragraph{Benchmarking Protocols}
 \begin{itemize}
     \item \textbf{Baseline Comparison Protocol:} Direct quantitative benchmark comparison against an uncompressed, standard RGB-ResNet architecture \citep{gueguen2018faster}.
 
-    \item \textbf{State-of-the-Art (SOTA) Protocol:} Comparative evaluation of our empirical results against figures published in primary reference literature \citep{gueguen2018faster}.
+    \item \textbf{State-of-the-Art (SOTA) Protocol:} Comparative evaluation of empirical results against published literature benchmarks \citep{gueguen2018faster}.
 \end{itemize}
 
-\subsection{Used Protocols}
-\label{subsec:protocols}
+\subsubsection{Selected Evaluation Protocols}
+\label{subsubsec:selected_protocols}
 
-To rigorously evaluate the compressed-domain classification approach, we implement the following core evaluation protocols:
+Considering the project scope, a targeted subset of the candidate protocols defined above is selected for implementation, as summarized in Table~\ref{tab:selected_protocols}.
 
-\begin{itemize}
-    \item \textbf{End-to-End Latency Protocol:} Measures total runtime by combining preprocessing (RGB decoding vs. DCT extraction) and model inference latency.
-    \item \textbf{Hardware \& Environment Standardization Protocol:} Conducts all timing measurements on standardized hardware configurations to ensure fair comparisons \citep{canziani2016analysis}.
-    \item \textbf{Throughput / FPS Protocol:} Evaluates processing speed by quantifying how many images each model can process per second.
-    \item \textbf{Baseline Comparison Protocol:} Directly benchmarks performance against a standard RGB-ResNet architecture \citep{gueguen2018faster}.
-    \item \textbf{Ablation Study Protocol:} Systematically removes parts of the input data (such as specific DCT frequencies) to analyze their impact on classification results \citep{meyes2019ablation}.
-    \item \textbf{Accuracy vs. Complexity/Speed Trade-off Protocol:} Draws trade-off curves illustrating how variations in speed impact Top-1 and Top-5 classification accuracy \citep{gueguen2018faster}.
-\end{itemize}
+\begin{table}[H]
+    \centering
+    \caption{Selected evaluation protocols and their scope in this study.}
+    \label{tab:selected_protocols}
+    \begin{tabular}{lp{8cm}}
+        \toprule
+        \textbf{Selected Protocol} & \textbf{Primary Objective} \\
+        \midrule
+        End-to-End Latency & Quantify latency savings from bypassing spatial decoding. \\
+        Hardware Standardization & Ensure fair timing comparisons on constrained hardware \citep{canziani2016analysis}. \\
+        Throughput / FPS & Evaluate real-time image processing throughput. \\
+        Baseline Comparison & Benchmark against standard RGB-ResNet \citep{gueguen2018faster}. \\
+        Ablation Study & Analyze performance impact of frequency band pruning \citep{meyes2019ablation}. \\
+        Accuracy vs. Speed Trade-off & Chart Top-1/Top-5 accuracy against truncation levels \citep{gueguen2018faster}. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \subsection{Expected Contribution}
 
@@ -658,7 +606,7 @@ to ensure that the project can be completed within the available timeline.
 \label{tab:tasks}
 \begin{tabular}{@{}p{0.12\linewidth}p{0.26\linewidth}p{0.26\linewidth}p{0.26\linewidth}@{}}
 \toprule
-\textbf{Milestone} & \textbf{Habiba Mounir Sayed Abd El-Rahim} & \textbf{Hagar Medhat} & \textbf{Shahd Ahmed} \\
+\textbf{Milestone} & \textbf{Habiba Mounir Sayed Abd El-Rahim} & \textbf{Hagar Medhat Fawzy} & \textbf{Shahd Ahmed Samer} \\
 \midrule
 M1 (Wk 3) & JPEG-DCT extraction pipeline; dataset subset chosen & Design DCT-domain classifier architecture & Define accuracy/speed comparison protocol \\
 M2 (Wk 6) & RGB-ResNet baseline trained, accuracy recorded & DCT-domain classifier, first trained checkpoint & Preliminary accuracy + speed comparison \\
@@ -670,7 +618,7 @@ M3 (Wk 9) & Final RGB baseline (accuracy + decode+infer time) & Final DCT-domain
 \section{Project Repository}
 \label{sec:repository}
 
-The complete source code and implementation of our Compressed-Domain Image Classification project are available in our GitHub repository. The repository includes the data preprocessing scripts, JPEG DCT coefficient extraction, model implementations, training and evaluation notebooks, and experimental results.
+The complete source code and implementation of our Compressed-Domain Image Classification project are available in the following GitHub repository. The repository includes the data preprocessing scripts, JPEG DCT coefficient extraction, model implementations, training and evaluation notebooks, and experimental results.
 
 \begin{center}
     \url{git@github.com:Habiba1998/Compressed-Domain-Image-Classification.git}
