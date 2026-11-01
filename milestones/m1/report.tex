@@ -241,7 +241,6 @@ processing to final class prediction.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{DCT-Domain Classifier Architecture}
 
 Figure~\ref{fig:proposed_architecture} illustrates the proposed
 compressed-domain image classification pipeline. The system extracts
@@ -257,6 +256,78 @@ predict the corresponding CIFAR-10 class.
     \label{fig:proposed_architecture}
 \end{figure}
 
+\subsection{DCT-Domain Classifier Architecture}
+
+To classify images directly in the compressed domain, we propose
+a two-branch Convolutional Neural Network (CNN) implemented using
+PyTorch. The architecture processes luminance and chrominance
+DCT coefficients through separate branches before combining
+their extracted features for final classification.
+
+\subsubsection{Luminance Branch}
+
+The first branch processes the luminance (Y) DCT coefficients,
+which represent the brightness information of the image.
+It receives a single-channel input and consists of two
+convolutional layers.
+
+The first convolutional layer applies 16 filters with a
+$3 \times 3$ kernel and padding of 1. A ReLU activation
+function introduces non-linearity, followed by a
+$2 \times 2$ MaxPooling operation to reduce the spatial
+dimensions. The second convolutional layer increases the
+number of feature maps from 16 to 32, followed by another
+ReLU activation.
+
+Adaptive Average Pooling reduces the spatial dimensions
+to $1 \times 1$. Finally, the Flatten operation converts
+the output into a 32-dimensional feature vector.
+
+\subsubsection{Chrominance Branch}
+
+The second branch processes the chrominance components
+(Cb and Cr), which represent color information.
+It receives a two-channel input and follows a structure
+similar to the luminance branch.
+
+It contains two convolutional layers with 16 and 32 filters,
+respectively. ReLU activation functions and MaxPooling
+are applied in the same way as in the luminance branch.
+Adaptive Average Pooling and Flatten then produce
+a 32-dimensional feature vector.
+
+\subsubsection{Feature Fusion and Classification}
+
+The feature vectors extracted from both branches are
+concatenated along the feature dimension. The luminance
+branch contributes 32 features, while the chrominance
+branch contributes another 32 features, resulting in
+a combined representation of 64 features.
+
+The combined representation is passed to a fully connected
+classifier. The first linear layer maps the 64 input features
+to 128 neurons, followed by a ReLU activation and a Dropout
+layer with a probability of 0.3 to help reduce overfitting.
+
+Finally, the output linear layer maps the 128 features
+to 10 output scores, corresponding to the 10 CIFAR-10
+classes. The predicted class is selected based on the
+highest output score.
+
+\subsubsection{Model Architecture Illustration}
+
+Figure~\ref{fig:dct_cnn_architecture} illustrates the complete
+architecture, including the separate luminance and chrominance
+branches, feature concatenation, and final classification layers.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]
+    {images/dct_cnn_architecture.png}
+    \caption{Two-branch DCT-CNN architecture for compressed-domain
+    image classification.}
+    \label{fig:dct_cnn_architecture}
+\end{figure}
 
 
 \subsection{RGB Baseline and Experimental Comparison}
