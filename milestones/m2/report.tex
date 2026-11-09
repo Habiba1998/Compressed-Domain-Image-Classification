@@ -1,0 +1,125 @@
+\documentclass[11pt]{article}
+
+% ============================================================
+% Milestone 2 -- Progress Report Template
+% DIP Team Project
+% ============================================================
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[round]{natbib}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue!50!black, citecolor=blue!50!black, urlcolor=blue!50!black}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{caption}
+
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+
+\title{\LARGE Progress Report \\[4pt]
+\large \todo{Project Title}}
+\author{
+  Habiba Mounir Sayed Abd El-Rahim 2600870\and
+  \ Hagar Medhat Fawzy 2400052\and
+  \ Shahd Ahmed Samer 2501891
+}
+\date{Milestone 2 --- 2 November 2026 \\{} [CSE681] --- Digital Image Processing}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Image classification pipelines typically decode compressed images into the pixel domain before inference, introducing additional computational cost. This project evaluates an alternative approach that operates directly on JPEG Discrete Cosine Transform (DCT) coefficients and compares it against a conventional decode\-then\-classify ResNet\-18 baseline on the CIFAR\-10 dataset. The DCT classifier achieved an accuracy of \\todo\{YY.Y%\} compared to \\todo\{XX.X%\} for ResNet\-18, while reducing average inference time from \\todo\{A ms/image\} to \\todo\{B ms/image\}. The results demonstrate the trade\-off between predictive accuracy and computational efficiency when classification is performed directly in the compressed domain.
+\end{abstract}
+
+\section{Recap}
+\label{sec:recap}
+\todo{1 paragraph: problem, baseline, dataset -- carried over from M1, updated if scope
+changed.}
+
+\section{Implementation Status}
+\label{sec:status}
+\todo{What is built and working right now. Be concrete: architecture as actually
+implemented (not as planned), training configuration, any deviation from the M1 plan
+and why.}
+
+\subsection{Baseline Reproduction}
+The decode-then-classify baseline was reproduced using a ResNet-18 classifier ~\cite{he2016deep} trained on the CIFAR-10 dataset.
+An initial training run was performed for 200 epochs without data augmentation.
+Although the training accuracy continued to improve, the model exhibited clear overfitting and achieved a test accuracy of approximately \textbf{87\%}.
+This indicated that the model was memorizing training samples rather than learning features that generalized well to unseen data.
+To improve generalization while maintaining a fair comparison with the proposed DCT-based classifier,
+a controlled augmentation strategy was adopted. Rather than applying random transformations online during training,
+an augmented training set was generated and stored offline using standard CIFAR-10 augmentations,
+including random crops and horizontal flips. At the beginning of each epoch, a random subset of 50{,}000 images was sampled from this augmented pool.
+This approach ensured that both the ResNet-18 and DCT-based classifiers were trained on the same effective number of samples per epoch while still benefiting from increased data diversity.
+Using the augmented dataset, the ResNet-18 model was retrained for 100 epochs.
+The resulting baseline achieved a test accuracy of \textbf{93.3\%} on CIFAR-10,
+representing a substantial improvement over the non-augmented baseline. This result provides a strong decode-then-classify reference against which the compressed-domain DCT classifier can be evaluated.
+\subsection{Your Method}
+\todo{Status of your extension/contribution: what runs end-to-end, what doesn't yet.}
+
+\section{Preliminary Results}
+\label{sec:results}
+\todo{At least one quantitative table or rate-distortion/accuracy curve comparing your
+method (even partially trained) to the baseline, plus 2--3 qualitative examples.}
+
+\begin{table}[h]
+\centering
+\caption{Preliminary quantitative comparison.}
+\label{tab:prelim}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & \textbf{Metric 1} & \textbf{Metric 2} & \textbf{Notes} \\
+\midrule
+Baseline        & \todo{val} & \todo{val} & \todo{} \\
+Ours (partial)  & \todo{val} & \todo{val} & \todo{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+% \includegraphics[width=0.8\linewidth]{figures/preliminary_result.png}
+\caption{\todo{Describe what this figure actually shows -- not what you expected it to
+show. If the qualitative result is weaker or different than hoped, say so and explain
+your current hypothesis.}}
+\label{fig:prelim}
+\end{figure}
+
+\section{Challenges \& Deviations from the M1 Plan}
+\label{sec:challenges}
+\todo{Be specific and honest. What did not work as planned? What did you change and
+why? This section is graded on candor and problem-solving, not on everything having
+gone smoothly.}
+
+\section{Updated Work Breakdown \& MVP Status}
+\label{sec:workbreakdown}
+\todo{State explicitly whether the M1 minimum-viable deliverable has been reached. If
+not, what is the revised plan to reach it before M3?}
+
+\begin{table}[h]
+\centering
+\caption{Updated milestone task allocation.}
+\label{tab:tasks}
+\begin{tabular}{@{}p{0.12\linewidth}p{0.26\linewidth}p{0.26\linewidth}p{0.26\linewidth}@{}}
+\toprule
+\textbf{Milestone} & \textbf{Student A} & \textbf{Student B} & \textbf{Student C} \\
+\midrule
+M2 (Wk 6) -- completed & \todo{what was done} & \todo{what was done} & \todo{what was done} \\
+M3 (Wk 9) -- planned   & \todo{task} & \todo{task} & \todo{task} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Next Steps}
+\label{sec:next}
+\todo{Concrete plan for Weeks 7--9.}
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}
