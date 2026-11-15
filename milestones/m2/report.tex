@@ -20,7 +20,7 @@
 \newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
 
 \title{\LARGE Progress Report \\[4pt]
-\large \todo{Project Title}}
+\large Compressed-Domain Image Classification}
 \author{
   Habiba Mounir Sayed Abd El-Rahim 2600870\and
   \ Hagar Medhat Fawzy 2400052\and
@@ -32,7 +32,10 @@
 \maketitle
 
 \begin{abstract}
-Image classification pipelines typically decode compressed images into the pixel domain before inference, introducing additional computational cost. This project evaluates an alternative approach that operates directly on JPEG Discrete Cosine Transform (DCT) coefficients and compares it against a conventional decode\-then\-classify ResNet\-18 baseline on the CIFAR\-10 dataset. The DCT classifier achieved an accuracy of \\todo\{YY.Y%\} compared to \\todo\{XX.X%\} for ResNet\-18, while reducing average inference time from \\todo\{A ms/image\} to \\todo\{B ms/image\}. The results demonstrate the trade\-off between predictive accuracy and computational efficiency when classification is performed directly in the compressed domain.
+Image classification pipelines typically decode compressed images into the pixel domain before inference, introducing additional computational cost.
+This project evaluates an alternative approach that operates directly on JPEG Discrete Cosine Transform (DCT) coefficients and compares it against a conventional decode\-then\-classify ResNet\-18 baseline on the CIFAR\-10 dataset.
+The DCT classifier achieved an accuracy of \todo\{YY.Y\} compared to \textbf{93.3\%} for ResNet\-18, while reducing average inference time
+from \\todo\{A ms/image\} to \textbf{7.6353}. The results demonstrate the trade\-off between predictive accuracy and computational efficiency when classification is performed directly in the compressed domain.
 \end{abstract}
 
 \section{Recap}
@@ -47,18 +50,23 @@ implemented (not as planned), training configuration, any deviation from the M1 
 and why.}
 
 \subsection{Baseline Reproduction}
-The decode-then-classify baseline was reproduced using a ResNet-18 classifier ~\cite{he2016deep} trained on the CIFAR-10 dataset.
+The decode-then-classify baseline was reproduced using a ResNet-18 classifier ~\cite{he2016deep} trained on the CIFAR-10 dataset ~\cite{krizhevsky2009cifar}.
 An initial training run was performed for 200 epochs without data augmentation.
 Although the training accuracy continued to improve, the model exhibited clear overfitting and achieved a test accuracy of approximately \textbf{87\%}.
 This indicated that the model was memorizing training samples rather than learning features that generalized well to unseen data.
+
 To improve generalization while maintaining a fair comparison with the proposed DCT-based classifier,
 a controlled augmentation strategy was adopted. Rather than applying random transformations online during training,
 an augmented training set was generated and stored offline using standard CIFAR-10 augmentations,
 including random crops and horizontal flips. At the beginning of each epoch, a random subset of 50{,}000 images was sampled from this augmented pool.
+
 This approach ensured that both the ResNet-18 and DCT-based classifiers were trained on the same effective number of samples per epoch while still benefiting from increased data diversity.
 Using the augmented dataset, the ResNet-18 model was retrained for 100 epochs.
 The resulting baseline achieved a test accuracy of \textbf{93.3\%} on CIFAR-10,
 representing a substantial improvement over the non-augmented baseline. This result provides a strong decode-then-classify reference against which the compressed-domain DCT classifier can be evaluated.
+
+This result is close to the 94\% accuracy target reported by Jordan~\cite{jordan2024airbench} for a CIFAR-10 classifier trained with simple data augmentation techniques such as random horizontal flipping
+and random translation. Although their architecture and training strategy differ from the ResNet-18 baseline used in this work, the comparison indicates that the proposed augmentation pipeline provides a competitive level of performance.
 \subsection{Your Method}
 \todo{Status of your extension/contribution: what runs end-to-end, what doesn't yet.}
 
@@ -92,9 +100,10 @@ your current hypothesis.}}
 
 \section{Challenges \& Deviations from the M1 Plan}
 \label{sec:challenges}
-\todo{Be specific and honest. What did not work as planned? What did you change and
-why? This section is graded on candor and problem-solving, not on everything having
-gone smoothly.}
+The main challenge encountered during baseline training was overfitting of the ResNet-18 classifier.
+To improve generalization while preserving a fair comparison with the proposed method, the training procedure was modified to use an offline-augmented dataset shared by both models.
+As a consequence of the increased dataset size, a random sampling strategy was introduced to limit the number of training samples processed per epoch.
+These modifications improved the baseline accuracy from approximately 87\% to 93.3\%.
 
 \section{Updated Work Breakdown \& MVP Status}
 \label{sec:workbreakdown}
